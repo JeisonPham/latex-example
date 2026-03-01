@@ -1,0 +1,264 @@
+\documentclass[11pt, a4paper]{article}
+
+% ============================================================
+% PACKAGES
+% ============================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{parskip}
+
+% ============================================================
+% STYLING
+% ============================================================
+
+% Link colors
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    urlcolor=blue!70!black,
+    citecolor=blue!70!black
+}
+
+% Code listing style
+\lstdefinestyle{codestyle}{
+    backgroundcolor=\color{gray!10},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!30},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    tabsize=4,
+    showstringspaces=false,
+    keywordstyle=\color{blue!70!black}\bfseries,
+    commentstyle=\color{green!50!black},
+    stringstyle=\color{red!60!black}
+}
+\lstset{style=codestyle}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Design Document}}
+\fancyhead[R]{\small\textit{Project Name}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Section styling
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\vspace{-0.5em}\rule{\textwidth}{0.4pt}]
+
+% ============================================================
+% METADATA — FILL THESE IN
+% ============================================================
+\newcommand{\doctitle}{Feature Name: Design Document}
+\newcommand{\docauthor}{Your Name}
+\newcommand{\docreviewer}{Reviewer Name(s)}
+\newcommand{\docstatus}{Draft}           % Draft | In Review | Approved
+\newcommand{\docversion}{0.1}
+
+% ============================================================
+% DOCUMENT START
+% ============================================================
+\begin{document}
+
+% --------------------------------------------------
+% Title block
+% --------------------------------------------------
+\begin{center}
+    {\LARGE\bfseries \doctitle \par}
+    \vspace{1em}
+    \begin{tabular}{@{} l l @{}}
+        \textbf{Author:}   & \docauthor \\
+        \textbf{Reviewer:} & \docreviewer \\
+        \textbf{Status:}   & \docstatus \\
+        \textbf{Version:}  & \docversion \\
+        \textbf{Date:}     & \today \\
+    \end{tabular}
+\end{center}
+
+\vspace{1em}
+\tableofcontents
+\newpage
+
+% --------------------------------------------------
+% 1. Overview
+% --------------------------------------------------
+\section{Overview}
+
+Provide a brief, high-level summary of the feature or system being designed. A reader should understand the ``what'' and ``why'' within a few sentences.
+
+\textit{Example: This document describes the design for a real-time notification service that delivers push notifications to mobile and web clients with at-least-once delivery guarantees.}
+
+% --------------------------------------------------
+% 2. Context and Motivation
+% --------------------------------------------------
+\section{Context and Motivation}
+
+Explain the background. Why is this work needed? What problem does it solve? Include links to relevant docs, tickets, or prior art.
+
+\begin{itemize}
+    \item What is the current state of the system?
+    \item What pain points or limitations exist today?
+    \item What is the business or user impact?
+\end{itemize}
+
+% --------------------------------------------------
+% 3. Goals and Non-Goals
+% --------------------------------------------------
+\section{Goals and Non-Goals}
+
+\subsection*{Goals}
+\begin{itemize}
+    \item Goal 1: Clearly state what this design aims to achieve.
+    \item Goal 2: Be specific and measurable where possible.
+\end{itemize}
+
+\subsection*{Non-Goals}
+\begin{itemize}
+    \item Non-Goal 1: Explicitly call out what is out of scope.
+    \item Non-Goal 2: This prevents scope creep and sets expectations.
+\end{itemize}
+
+% --------------------------------------------------
+% 4. Proposed Design
+% --------------------------------------------------
+\section{Proposed Design}
+
+This is the core of the document. Describe the solution in detail.
+
+\subsection{Architecture Overview}
+
+Describe the high-level architecture. Include a diagram if helpful.
+
+% Uncomment to include a diagram:
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{architecture-diagram.png}
+%     \caption{System architecture overview.}
+% \end{figure}
+
+\subsection{Data Model}
+
+Define the key data structures, database schemas, or models.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{@{} l l l @{}}
+        \toprule
+        \textbf{Field} & \textbf{Type} & \textbf{Description} \\
+        \midrule
+        id             & UUID          & Primary key \\
+        user\_id       & UUID          & Foreign key to users table \\
+        status         & ENUM          & pending, active, archived \\
+        created\_at    & TIMESTAMP     & Record creation time \\
+        \bottomrule
+    \end{tabular}
+    \caption{Example schema for the notifications table.}
+\end{table}
+
+\subsection{API Design}
+
+Define the key endpoints or interfaces.
+
+\begin{lstlisting}[language=Python, caption={Example endpoint}]
+@app.post("/api/v1/notifications")
+async def create_notification(payload: NotificationRequest):
+    """Create and dispatch a new notification."""
+    notification = NotificationService.create(payload)
+    await NotificationService.dispatch(notification)
+    return {"id": notification.id, "status": "pending"}
+\end{lstlisting}
+
+\subsection{Key Flows}
+
+Walk through the most important user or system flows step by step.
+
+\begin{enumerate}
+    \item User triggers an action in the app.
+    \item The API server creates a notification record.
+    \item The dispatcher places the message on a queue.
+    \item Workers consume the message and deliver it to the client.
+\end{enumerate}
+
+% --------------------------------------------------
+% 5. Alternatives Considered
+% --------------------------------------------------
+\section{Alternatives Considered}
+
+Describe other approaches you evaluated and why you chose the proposed design over them. This shows due diligence and helps reviewers understand trade-offs.
+
+\begin{description}
+    \item[Option A: Polling-based approach] \hfill \\
+        Simpler to implement but adds latency and increases server load at scale.
+    \item[Option B: Third-party service (e.g., Firebase)] \hfill \\
+        Lower maintenance burden but introduces a vendor dependency and limits customization.
+\end{description}
+
+% --------------------------------------------------
+% 6. Trade-offs and Risks
+% --------------------------------------------------
+\section{Trade-offs and Risks}
+
+Be honest about the downsides and uncertainties.
+
+\begin{itemize}
+    \item \textbf{Complexity:} The proposed design adds a message queue dependency.
+    \item \textbf{Latency:} End-to-end delivery time depends on queue throughput.
+    \item \textbf{Risk:} If the queue becomes a bottleneck, notifications may be delayed.
+    \item \textbf{Mitigation:} We will implement dead-letter queues and monitoring alerts.
+\end{itemize}
+
+% --------------------------------------------------
+% 7. Milestones and Timeline
+% --------------------------------------------------
+\section{Milestones and Timeline}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{@{} l l l @{}}
+        \toprule
+        \textbf{Milestone} & \textbf{Target Date} & \textbf{Owner} \\
+        \midrule
+        Design review complete    & YYYY-MM-DD & Author \\
+        Core implementation       & YYYY-MM-DD & Team \\
+        Integration testing       & YYYY-MM-DD & Team \\
+        Staged rollout            & YYYY-MM-DD & Team \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+% --------------------------------------------------
+% 8. Open Questions
+% --------------------------------------------------
+\section{Open Questions}
+
+List unresolved decisions or items that need further discussion.
+
+\begin{enumerate}
+    \item Should we support batched notifications in v1 or defer to v2?
+    \item What is the expected peak throughput, and do we need to load test before launch?
+    \item Who owns the on-call rotation for this service?
+\end{enumerate}
+
+% --------------------------------------------------
+% 9. References
+% --------------------------------------------------
+\section{References}
+
+\begin{itemize}
+    \item \href{https://example.com}{Link to related design doc or RFC}
+    \item \href{https://example.com}{Link to relevant ticket or epic}
+    \item \href{https://example.com}{Link to external resources or prior art}
+\end{itemize}
+
+\end{document}
