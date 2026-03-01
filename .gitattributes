@@ -1,0 +1,1 @@
+*.docx filter=pandoc-docx diff=pandoc-docx
